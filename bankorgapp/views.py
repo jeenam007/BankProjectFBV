@@ -1,10 +1,14 @@
 from django.shortcuts import render,redirect
-from .forms import  AccountCreationForm,LoginForm
+from .forms import  AccountCreationForm,LoginForm,TransactionForm
 from django.views.generic import CreateView,TemplateView
-from .models import MyUser
+from .models import MyUser,Transaction
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from django.contrib.auth import authenticate,login,logout
+from . views import *
+import logging
+from django.utils import timezone
+from django.contrib import messages
 
 
 # Create your views here.
@@ -45,11 +49,41 @@ def logoutview(request):
     logout(request)
     return redirect('login')
 
-class Balanceview(TemplateView):
-    template_name="home.html"
-    def get(self,request,*args,**kwargs):
-        balance=request.user.balance
-        print(balance)
-        return render(request, self.template_name,{'balance':balance})
-       
+def balance_view(request):
+    balance = request.user.balance
+    print(balance)
+    return render(request, "home.html", {'balance': balance})
+    
+logger = logging.getLogger(__name__)
+class GetUserAccountMixin():
+    def get_user_account(self,acc_no):
+        try:
+            return MyUser.objects.get(account_number=acc_no)
+        except MyUser.DoesNotExist:
+            logger.warning(f"Account with number {acc_no} not found.")
+            return None
 
+def fund_transfer_view(request):
+    if request.method == "POST":
+        form = TransactionForm(request.POST, user=request.user)
+        if form.is_valid():
+            Transaction.objects.create(
+                from_account_no=form.cleaned_data['from_account_no'],
+                to_account_no=form.cleaned_data['to_account_no'],
+                amount=form.cleaned_data['amount'],
+                note=form.cleaned_data['note'],
+                user=request.user,
+                date=timezone.now().date()
+            )
+            messages.success(request, "Transaction successful!")
+            return redirect('home')
+    else:
+        form = TransactionForm(user=request.user)
+
+    return render(request, "fundtransfer.html", {'form': form,'user':request.user,'balance': request.user.balance})
+
+
+
+def transaction_history(request):
+    transactions = Transaction.objects.filter(from_account_no=request.user.account_number)
+    return render(request, 'transaction_history.html', {'transactions': transactions})

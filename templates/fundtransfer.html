@@ -1,0 +1,122 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fund Transfer</title>
+    <link rel="icon" href="{% static 'images/bank.png' %}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fc;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-bottom: 15px;
+        }
+
+        .readonly {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4a90e2;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #357bd8;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: -10px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: red;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Fund Transfer</h2>
+        <form method="post">
+            {% csrf_token %}
+
+            <label for="from_account_no">From Account</label>
+            {{ form.from_account_no }}
+            {% if form.from_account_no.errors %}
+                <div class="error">{{ form.from_account_no.errors }}</div>
+            {% endif %}
+            <div class="info-text">Username: {{ user.username }}</div>
+            <div class="info-text">Balance: ₹{{ balance }}</div> 
+            <label for="to_account_no">To Account</label>
+            {{ form.to_account_no }}
+            {% if form.to_account_no.errors %}
+                <div class="error">{{ form.to_account_no.errors }}</div>
+            {% endif %}
+
+            <label for="confirm_account_no">Confirm Account Number</label>
+            {{ form.confirm_account_no }}
+            {% if form.confirm_account_no.errors %}
+                <div class="error">{{ form.confirm_account_no.errors }}</div>
+            {% endif %}
+
+            <label for="amount">Amount</label>
+            {{ form.amount }}
+            {% if form.amount.errors %}
+                <div class="error">{{ form.amount.errors }}</div>
+            {% endif %}
+
+            <label for="note">Note</label>
+            {{ form.note }}
+            {% if form.note.errors %}
+                <div class="error">{{ form.note.errors }}</div>
+            {% endif %}
+
+            <button type="submit">Transfer</button>
+        </form>
+    </div>
+</body>
+</html>

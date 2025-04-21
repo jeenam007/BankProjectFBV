@@ -47,9 +47,9 @@
         <p>Your simple banking solution.</p>
         <a href="{% url 'signup' %}" class="button">Register</a><br><br>
         <a href="{% url 'balance' %}">Balance Enquiry</a><br><br>
-       
-        <a href="">Fund Tranfer</a><br><br>
-        <a href="">Payment History</a><br>
+        {% comment %} <a href="{% url 'search_account' %}">Search Account</a><br><br> {% endcomment %}
+        <a href="{% url 'transaction' %}">Fund Transfer</a><br><br>  
+        <a href="{% url 'transaction_history' %}">Payment History</a><br>
         <div>
             {% if balance %}
             <p>Your balance is: ₹{{ balance }}</p>

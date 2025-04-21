@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Transaction History</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- ✅ Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-6 bg-gray-50 text-gray-800">
+
+    <h1 class="text-2xl font-bold mb-4">Transaction History</h1>
+
+    <table class="table border-2 border-gray-300 w-full text-left">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-2 border-b">From Account</th>
+                <th class="p-2 border-b">To Account</th>
+                <th class="p-2 border-b">Amount</th>
+                <th class="p-2 border-b">Notes</th>
+                <th class="p-2 border-b">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for txn in transactions %}
+            <tr class="hover:bg-gray-50">
+                <td class="p-2 border-b">{{ txn.from_account_no }}</td>
+                <td class="p-2 border-b">{{ txn.to_account_no }}</td>
+                <td class="p-2 border-b">{{ txn.amount }}</td>
+                <td class="p-2 border-b">{{ txn.note }}</td>
+                <td class="p-2 border-b">{{ txn.date }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="p-2 text-center text-gray-500">No transactions found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

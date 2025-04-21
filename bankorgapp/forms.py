@@ -1,6 +1,18 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from bankorgapp.models import MyUser
+from bankorgapp.models import MyUser,Transaction
+from .models import MyUser
+import logging
+
+logger = logging.getLogger(__name__)
+
+class GetUserAccountMixin:
+    def get_user_account(self, acc_no):
+        try:
+            return MyUser.objects.get(account_number=acc_no)
+        except MyUser.DoesNotExist:
+            logger.warning(f"Account with number {acc_no} not found.")
+            return None
 
 class AccountCreationForm(UserCreationForm):
     class Meta:
@@ -23,8 +35,68 @@ class AccountCreationForm(UserCreationForm):
         }
 
 class LoginForm(forms.Form):
-            username=forms.CharField()
-            password=forms.CharField(widget=forms.PasswordInput)
+            username = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control p-2"}))
+            password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control p-2"}))
+           
+
+class TransactionForm(forms.Form,GetUserAccountMixin):
+     from_account_no=forms.CharField(max_length=16)
+     to_account_no=forms.CharField(max_length=16)
+     confirm_account_no=forms.CharField(max_length=16)
+     amount=forms.FloatField()
+     note=forms.CharField(max_length=100)
+
+     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        if self.user:
+            self.fields['from_account_no'].initial = self.user.account_number
+            self.fields['from_account_no'].widget.attrs['readonly'] = True
+     
+     
+     def clean(self):
+          cleaned_data=super().clean()
+          from_account_no=self.user.account_number if self.user else None
+          to_account_no=cleaned_data.get("to_account_no")
+          confirm_account_no=cleaned_data.get("confirm_account_no")
+          amount=cleaned_data.get("amount")
+
+          if amount is not None and amount <= 0:
+               self.add_error("amount","Amount should be greater than zero.")
+               
+
+
+                      # Check if account numbers match
+          if to_account_no != confirm_account_no:
+                self.add_error("confirm_account_no", "Account numbers do not match.")
+
+            # Check if the target account exists
+          mixin = GetUserAccountMixin()
+          account = mixin.get_user_account(confirm_account_no)
+          if not account:
+                self.add_error("confirm_account_no", "Invalid account number.")
+
+             # ✅Check sender's balance
+          if self.user and amount:
+                 if self.user.balance<amount:
+                      self.add_error("amount","Insufficient balance")
+
+          
+
+
+
+
+
+
+
+
+
+        
+
+
+   
+    
             
 
             
