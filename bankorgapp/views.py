@@ -5,7 +5,6 @@ from .models import MyUser,Transaction
 from django.urls import reverse_lazy
 from django.views.generic.edit import FormView
 from django.contrib.auth import authenticate,login,logout
-from . views import *
 import logging
 from django.utils import timezone
 from django.contrib import messages
@@ -62,28 +61,65 @@ class GetUserAccountMixin():
         except MyUser.DoesNotExist:
             logger.warning(f"Account with number {acc_no} not found.")
             return None
-
+        
 def fund_transfer_view(request):
     if request.method == "POST":
         form = TransactionForm(request.POST, user=request.user)
         if form.is_valid():
+            from_account_no = form.cleaned_data['from_account_no']
+            to_account_no = form.cleaned_data['to_account_no']
+            amount = form.cleaned_data['amount']
+            note = form.cleaned_data['note']
+
+            # Ensure sender exists and has sufficient balance
+            try:
+                sender = MyUser.objects.get(account_number=from_account_no)
+                receiver = MyUser.objects.get(account_number=to_account_no)
+            except MyUser.DoesNotExist:
+                messages.error(request, "Invalid account number.")
+                return render(request, "fundtransfer.html", {'form': form})
+
+            if sender.balance < amount:
+                messages.error(request, "Insufficient balance.")
+                return render(request, "fundtransfer.html", {'form': form})
+
+            # Create transaction
             Transaction.objects.create(
-                from_account_no=form.cleaned_data['from_account_no'],
-                to_account_no=form.cleaned_data['to_account_no'],
-                amount=form.cleaned_data['amount'],
-                note=form.cleaned_data['note'],
+                from_account_no=from_account_no,
+                to_account_no=to_account_no,
+                amount=amount,
+                note=note,
                 user=request.user,
                 date=timezone.now().date()
             )
+
+            # Update balances
+            sender.balance -= amount
+            receiver.balance += amount
+            sender.save()
+            receiver.save()
+
             messages.success(request, "Transaction successful!")
             return redirect('home')
     else:
         form = TransactionForm(user=request.user)
 
-    return render(request, "fundtransfer.html", {'form': form,'user':request.user,'balance': request.user.balance})
+    return render(request, "fundtransfer.html", {'form': form,'user': request.user,'balance': request.user.balance })
 
 
 
+# def transaction_history(request):
+    # transactions = Transaction.objects.filter(from_account_no=request.user.account_number)
+    # return render(request, 'transaction_history.html', {'transactions': transactions})
 def transaction_history(request):
-    transactions = Transaction.objects.filter(from_account_no=request.user.account_number)
-    return render(request, 'transaction_history.html', {'transactions': transactions})
+    user_account_no = request.user.account_number
+
+    sent_transactions = Transaction.objects.filter(from_account_no=user_account_no)
+    received_transactions = Transaction.objects.filter(to_account_no=user_account_no)
+
+    transactions = sent_transactions.union(received_transactions).order_by('-date')
+
+    return render(request, 'transaction_history.html', {
+        'transactions': transactions,
+        'account_no': user_account_no
+    })

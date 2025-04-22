@@ -81,7 +81,7 @@
 <body>
     <div class="container">
         <h2>Fund Transfer</h2>
-        <form method="post">
+        <form method="post" onsubmit="disableSubmit(this)">
             {% csrf_token %}
 
             <label for="from_account_no">From Account</label>
@@ -115,8 +115,15 @@
                 <div class="error">{{ form.note.errors }}</div>
             {% endif %}
 
-            <button type="submit">Transfer</button>
+            <button type="submit" id="submitBtn" onclick="return confirm('Do you want to proceed with the transfer?')">
+                Transfer
+              </button>
         </form>
     </div>
+    <script>
+        function disableSubmit(form) {
+          form.querySelector('#submitBtn').disabled = true;
+        }
+      </script>  
 </body>
 </html>

@@ -30,7 +30,7 @@ def __init__(self, *args, **kwargs):
 class Transaction(models.Model):
     from_account_no = models.CharField(max_length=16)
     to_account_no = models.CharField(max_length=16)
-    amount = models.FloatField(validators=[MinValueValidator(0.01)]) 
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     note = models.CharField(max_length=100)
     user = models.ForeignKey('MyUser', on_delete=models.CASCADE, null=True)
     date = models.DateField(auto_now=True)

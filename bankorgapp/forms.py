@@ -43,7 +43,7 @@ class TransactionForm(forms.Form,GetUserAccountMixin):
      from_account_no=forms.CharField(max_length=16)
      to_account_no=forms.CharField(max_length=16)
      confirm_account_no=forms.CharField(max_length=16)
-     amount=forms.FloatField()
+     amount=forms.DecimalField()
      note=forms.CharField(max_length=100)
 
      def __init__(self, *args, **kwargs):
@@ -71,9 +71,8 @@ class TransactionForm(forms.Form,GetUserAccountMixin):
           if to_account_no != confirm_account_no:
                 self.add_error("confirm_account_no", "Account numbers do not match.")
 
-            # Check if the target account exists
-          mixin = GetUserAccountMixin()
-          account = mixin.get_user_account(confirm_account_no)
+           # Check if the target account exists
+          account = self.get_user_account(confirm_account_no)
           if not account:
                 self.add_error("confirm_account_no", "Invalid account number.")
 
@@ -81,6 +80,8 @@ class TransactionForm(forms.Form,GetUserAccountMixin):
           if self.user and amount:
                  if self.user.balance<amount:
                       self.add_error("amount","Insufficient balance")
+
+          return cleaned_data
 
           
 
