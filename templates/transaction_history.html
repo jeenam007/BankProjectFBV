@@ -22,22 +22,30 @@
                 <th class="p-2 border-b">Amount</th>
                 <th class="p-2 border-b">Notes</th>
                 <th class="p-2 border-b">Date</th>
+                <th>Type</th>
             </tr>
         </thead>
         <tbody>
             {% for txn in transactions %}
-            <tr class="hover:bg-gray-50">
-                <td class="p-2 border-b">{{ txn.from_account_no }}</td>
-                <td class="p-2 border-b">{{ txn.to_account_no }}</td>
-                <td class="p-2 border-b">{{ txn.amount }}</td>
-                <td class="p-2 border-b">{{ txn.note }}</td>
-                <td class="p-2 border-b">{{ txn.date }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="p-2 text-center text-gray-500">No transactions found.</td>
-            </tr>
-            {% endfor %}
+    <tr class="hover:bg-gray-50">
+        <td class="p-2 border-b">{{ txn.from_account_no }}</td>
+        <td class="p-2 border-b">{{ txn.to_account_no }}</td>
+        <td class="p-2 border-b">{{ txn.amount }}</td>
+        <td class="p-2 border-b">{{ txn.note }}</td>
+        <td class="p-2 border-b">{{ txn.date }}</td>
+        <td class="p-2 border-b">
+            {% if txn.transaction_type == 'credit' %}
+                <span style="color: green; font-weight: bold;">Credit</span>
+            {% else %}
+                <span style="color: red; font-weight: bold;">Debit</span>
+            {% endif %}
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6" class="p-2 text-center text-gray-500">No transactions found.</td>
+    </tr>
+    {% endfor %}
         </tbody>
     </table>
 

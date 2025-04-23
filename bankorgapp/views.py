@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate,login,logout
 import logging
 from django.utils import timezone
 from django.contrib import messages
+from django.db.models import Value, CharField
 
 
 # Create your views here.
@@ -108,16 +109,17 @@ def fund_transfer_view(request):
 
 
 
-# def transaction_history(request):
-    # transactions = Transaction.objects.filter(from_account_no=request.user.account_number)
-    # return render(request, 'transaction_history.html', {'transactions': transactions})
 def transaction_history(request):
     user_account_no = request.user.account_number
 
-    sent_transactions = Transaction.objects.filter(from_account_no=user_account_no)
-    received_transactions = Transaction.objects.filter(to_account_no=user_account_no)
+    Debit_transactions = Transaction.objects.filter(from_account_no=user_account_no).annotate(
+        transaction_type=Value('debit', output_field=CharField())
+    )
+    Credit_transactions = Transaction.objects.filter(to_account_no=user_account_no).annotate(
+        transaction_type=Value('credit', output_field=CharField())
+    )
 
-    transactions = sent_transactions.union(received_transactions).order_by('-date')
+    transactions = Debit_transactions.union(Credit_transactions).order_by('-date')
 
     return render(request, 'transaction_history.html', {
         'transactions': transactions,
