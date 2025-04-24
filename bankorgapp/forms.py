@@ -57,10 +57,11 @@ class FilterForm(forms.Form):
         required=False,
         widget=forms.NumberInput(attrs={"class": "form-control"})
     )
-    from_account_no = forms.CharField(
-        max_length=16,
+    from_account_no = forms.ChoiceField(
+        choices=[],
+        # queryset=MyUser.objects.none(),# start with empty;
         required=False,
-        widget=forms.TextInput(attrs={"class": "form-control"})
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
     transaction_type = forms.ChoiceField(
         required=False,
@@ -71,7 +72,15 @@ class FilterForm(forms.Form):
            
 
 class TransactionForm(forms.Form,GetUserAccountMixin):
-     from_account_no=forms.CharField(max_length=16)
+    #  from_account_no=forms.ChoiceField(
+    # choices=[],  # choices will be set dynamically in the view
+    # required=False,
+    # widget=forms.Select(attrs={'class': 'form-control'})
+    # )
+     from_account_no = forms.CharField(
+    required=False,
+    widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'})
+)
      to_account_no=forms.CharField(max_length=16)
      confirm_account_no=forms.CharField(max_length=16)
      amount=forms.DecimalField()
@@ -82,7 +91,9 @@ class TransactionForm(forms.Form,GetUserAccountMixin):
         super().__init__(*args, **kwargs)
 
         if self.user:
-            self.fields['from_account_no'].initial = self.user.account_number
+            account_number = self.user.account_number
+            self.fields['from_account_no'].choices = [(account_number, account_number)]
+            self.fields['from_account_no'].initial = account_number
             self.fields['from_account_no'].widget.attrs['readonly'] = True
      
      

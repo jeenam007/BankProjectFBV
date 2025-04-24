@@ -37,7 +37,7 @@
         {% if messages %}
             <div class="alert 
                 {% if messages.0.tags == 'error' %}alert-danger
-                {% elif messages.0.tags == 'success' %}alert-success
+                {% comment %} {% elif messages.0.tags == 'success' %}alert-success {% endcomment %}
                 {% elif messages.0.tags == 'warning' %}alert-warning
                 {% else %}alert-info
                 {% endif %}" 

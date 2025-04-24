@@ -83,12 +83,16 @@
         <h2>Fund Transfer</h2>
         <form method="post" onsubmit="disableSubmit(this)">
             {% csrf_token %}
+            {% comment %} <div class="form-field">
+                <label>From account no:</label>
+                {{ form.from_account_no }}
+            </div> {% endcomment %}
 
-            <label for="from_account_no">From Account</label>
+             <label for="from_account_no">From Account</label>
             {{ form.from_account_no }}
             {% if form.from_account_no.errors %}
                 <div class="error">{{ form.from_account_no.errors }}</div>
-            {% endif %}
+            {% endif %} 
             <div class="info-text">Username: {{ user.username }}</div>
             <div class="info-text">Balance: ₹{{ balance }}</div> 
             <label for="to_account_no">To Account</label>

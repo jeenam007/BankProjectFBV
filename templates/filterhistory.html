@@ -44,10 +44,11 @@
               <label>Amount:</label>
               <input type="text" name="amount" class="form-control"value="{{ request.GET.amount }}">
             </div>
+           
             <div class="form-field">
               <label>From account no:</label>
-              <input type="text" name="from_account_no" class="form-control"value="{{ request.GET.from_account_no }}">
-            </div>
+              {{ form.from_account_no }}
+          </div>
             <div class="form-field">
               <label>Transaction type:</label>
               <select name="transaction_type" class="form-control">

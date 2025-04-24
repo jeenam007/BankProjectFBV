@@ -133,31 +133,26 @@ def transaction_history(request):
         'account_no': user_account_no
     })
 
-# class TransactionFilterView(TemplateView):
-#     def get(self,request,*args,**kwargs):
-#         transactions=Transaction.objects.filter(Q(to_account_no=request.user.account_number)|Q(from_account_no=request.user.account_number))
-       
-#         transaction_filter=TransactionFilter(request.GET,queryset=transactions)
-#         return render(request,"filterhistory.html",{'filter':transaction_filter})
+
 
 @loginrequired
 def transaction_filter_view(request):
     # Get all transactions related to the user
     account_no = request.user.account_number
+    account_choices = [acc for acc in MyUser.objects.values_list('account_number', flat=True) if acc]
+    # account_choices = MyUser.objects.exclude(account_number__isnull=True).values_list('account_number', flat=True).distinct()
+    
+    
+    # Create the form with the account choices
     form = FilterForm(request.GET or None)
+   
+
+    form.fields['from_account_no'].choices = [('', 'All')] + [(str(account), str(account)) for account in account_choices]
+    # form.fields['from_account_no'].choices = request.objects.filter(account_number__in=account_choices)
 
     transactions = Transaction.objects.none()  # default: show no data
 
-    # transactions = Transaction.objects.filter(
-    #     Q(to_account_no=account_no) |
-    #     Q(from_account_no=account_no)
-    # ).annotate(
-    #     transaction_type=Case(
-    #         When(from_account_no=account_no, then=Value('debit')),
-    #         When(to_account_no=account_no, then=Value('credit')),
-    #         output_field=CharField()
-    #     )
-    # )
+   
 
     if form.is_valid():
         from_date = form.cleaned_data.get('from_date')
