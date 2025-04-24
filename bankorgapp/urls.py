@@ -10,7 +10,8 @@ urlpatterns = [
          path('logout/',views.logoutview, name='signout'),
          path('balance/',views.balance_view,name='balance'),
         path('transactions/',views.fund_transfer_view,name='transaction'),
-        path('transaction_history/',views.transaction_history,name='transaction_history')
+        path('transaction_history/',views.transaction_history,name='transaction_history'),
+        path('filter/',views.transaction_filter_view,name="filter")
         
        
 

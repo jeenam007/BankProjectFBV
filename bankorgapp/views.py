@@ -9,9 +9,14 @@ import logging
 from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Value, CharField
-
+from . decorators import loginrequired
+from . filters import TransactionFilter
+from .forms import FilterForm
+from django.db.models import Q
+from django.db.models import Case, When, Value, CharField
 
 # Create your views here.
+
 class AccountCreateView(CreateView):
     model=MyUser
     form_class=AccountCreationForm
@@ -45,10 +50,12 @@ class SigninView(FormView):
                 form.add_error(None, "Invalid username or password.")
         return render(request, self.template_name, {'form':form})
 
+@loginrequired
 def logoutview(request):
     logout(request)
     return redirect('login')
 
+@loginrequired
 def balance_view(request):
     balance = request.user.balance
     print(balance)
@@ -62,7 +69,7 @@ class GetUserAccountMixin():
         except MyUser.DoesNotExist:
             logger.warning(f"Account with number {acc_no} not found.")
             return None
-        
+@loginrequired       
 def fund_transfer_view(request):
     if request.method == "POST":
         form = TransactionForm(request.POST, user=request.user)
@@ -108,7 +115,7 @@ def fund_transfer_view(request):
     return render(request, "fundtransfer.html", {'form': form,'user': request.user,'balance': request.user.balance })
 
 
-
+@loginrequired
 def transaction_history(request):
     user_account_no = request.user.account_number
 
@@ -125,3 +132,72 @@ def transaction_history(request):
         'transactions': transactions,
         'account_no': user_account_no
     })
+
+# class TransactionFilterView(TemplateView):
+#     def get(self,request,*args,**kwargs):
+#         transactions=Transaction.objects.filter(Q(to_account_no=request.user.account_number)|Q(from_account_no=request.user.account_number))
+       
+#         transaction_filter=TransactionFilter(request.GET,queryset=transactions)
+#         return render(request,"filterhistory.html",{'filter':transaction_filter})
+
+@loginrequired
+def transaction_filter_view(request):
+    # Get all transactions related to the user
+    account_no = request.user.account_number
+    form = FilterForm(request.GET or None)
+
+    transactions = Transaction.objects.none()  # default: show no data
+
+    # transactions = Transaction.objects.filter(
+    #     Q(to_account_no=account_no) |
+    #     Q(from_account_no=account_no)
+    # ).annotate(
+    #     transaction_type=Case(
+    #         When(from_account_no=account_no, then=Value('debit')),
+    #         When(to_account_no=account_no, then=Value('credit')),
+    #         output_field=CharField()
+    #     )
+    # )
+
+    if form.is_valid():
+        from_date = form.cleaned_data.get('from_date')
+        to_date = form.cleaned_data.get('to_date')
+        amount = form.cleaned_data.get('amount')
+        from_account_no = form.cleaned_data.get('from_account_no')
+        transaction_type = form.cleaned_data.get('transaction_type')
+
+        # Only run query if at least one filter is applied
+        if from_date or to_date or amount or from_account_no or transaction_type:
+            transactions = Transaction.objects.filter(
+                Q(to_account_no=account_no) |
+                Q(from_account_no=account_no)
+            ).annotate(
+                transaction_type=Case(
+                    When(from_account_no=account_no, then=Value('debit')),
+                    When(to_account_no=account_no, then=Value('credit')),
+                    output_field=CharField()
+                )
+            )
+
+        if from_date:
+            transactions = transactions.filter(date__gte=from_date)
+        if to_date:
+            transactions = transactions.filter(date__lte=to_date)
+        if form.cleaned_data['amount']:
+            transactions = transactions.filter(amount=form.cleaned_data['amount'])
+        if form.cleaned_data['from_account_no']:
+            transactions = transactions.filter(from_account_no=form.cleaned_data['from_account_no'])
+        if form.cleaned_data.get('transaction_type'):
+            transactions = transactions.filter(transaction_type=form.cleaned_data['transaction_type'])
+
+    transactions = transactions.order_by('-date')
+
+    # Render the filtered result to the template
+    return render(request, "filterhistory.html",{
+        'transactions': transactions,
+        'form': form
+        })
+
+    
+
+

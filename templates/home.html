@@ -34,6 +34,8 @@
     </style>
 </head>
 <body>
+    
+  
 
     <div class="top-bar">
         <h5 class="mb-0">Welcome, {{ user.username }}</h5>
@@ -48,6 +50,7 @@
         <a href="{% url 'balance' %}" class="btn btn-info btn-custom">Balance Enquiry</a>
          <a href="{% url 'transaction' %}" class="btn btn-warning btn-custom">Fund Transfer</a>
         <a href="{% url 'transaction_history' %}" class="btn btn-secondary btn-custom">Payment History</a>
+        <a href="{% url 'filter' %}" class="btn btn-success btn-custom">Filter Transactions</a>
 
         {% if balance %}
         <div class="mt-4 alert alert-success">

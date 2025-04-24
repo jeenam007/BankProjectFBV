@@ -37,6 +37,37 @@ class AccountCreationForm(UserCreationForm):
 class LoginForm(forms.Form):
             username = forms.CharField(widget=forms.TextInput(attrs={"class": "form-control p-2"}))
             password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "form-control p-2"}))
+
+
+class FilterForm(forms.Form):
+    TRANSACTION_CHOICES = (
+        ('', 'All'),
+        ('credit', 'Credit'),
+        ('debit', 'Debit'),
+    )
+    from_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    to_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"})
+    )
+    amount = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={"class": "form-control"})
+    )
+    from_account_no = forms.CharField(
+        max_length=16,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"})
+    )
+    transaction_type = forms.ChoiceField(
+        required=False,
+        choices=TRANSACTION_CHOICES,
+        widget=forms.Select(attrs={"class": "form-control"})
+    )
+
            
 
 class TransactionForm(forms.Form,GetUserAccountMixin):
